@@ -1,6 +1,7 @@
 require 'socket'
 require 'delegate'
 require 'net/http'
+require 'config'
 
 # Statful Client Instance
 #
@@ -28,8 +29,9 @@ class StatfulClient
   # @option config [String] :namespace Global default namespace
   # @option config [Integer] :flush_size Buffer flush upper size limit
   # @return [Object] The Statful client
-  def initialize(config = {})
-    user_config = MyHash[config].symbolize_keys
+  def initialize(config = {}, env = "development")
+    # Load default config. Merge with yaml config, if exists.
+    user_config = StatfulConfig.load(config, env).symbolize_keys
 
     if !user_config.has_key?(:transport) || !%w(udp http).include?(user_config[:transport])
       raise ArgumentError.new('Transport is missing or invalid')
@@ -80,7 +82,7 @@ class StatfulClient
     opts = {
       :agg_freq => 10,
       :namespace => 'application'
-    }.merge(MyHash[options].symbolize_keys)
+    }.merge(Hash[options].symbolize_keys)
 
     opts[:tags] = tags
     opts[:agg] = aggregations
@@ -107,7 +109,7 @@ class StatfulClient
     opts = {
       :agg_freq => 10,
       :namespace => 'application'
-    }.merge(MyHash[options].symbolize_keys)
+    }.merge(Hash[options].symbolize_keys)
 
     opts[:tags] = tags
     opts[:agg] = aggregations
@@ -134,7 +136,7 @@ class StatfulClient
     opts = {
       :agg_freq => 10,
       :namespace => 'application'
-    }.merge(MyHash[options].symbolize_keys)
+    }.merge(Hash[options].symbolize_keys)
 
     opts[:tags] = tags
     opts[:agg] = aggregations
@@ -291,26 +293,4 @@ class StatfulClient
   def udp_socket
     Thread.current[:statful_socket] ||= UDPSocket.new(Addrinfo.udp(@config[:host], @config[:port]).afamily)
   end
-
-  # Custom Hash implementation to add a symbolize_keys method
-  #
-  # @private
-  class MyHash < Hash
-    # Recursively symbolize an Hash
-    #
-    # @return [Hash] the symbolized hash
-    def symbolize_keys
-      symbolize = lambda do |h|
-        Hash === h ?
-          Hash[
-            h.map do |k, v|
-              [k.respond_to?(:to_sym) ? k.to_sym : k, symbolize[v]]
-            end
-          ] : h
-      end
-
-      symbolize[self]
-    end
-  end
 end
-

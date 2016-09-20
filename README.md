@@ -12,6 +12,7 @@ Staful client for Ruby. This client is intended to gather metrics and send them 
 * [Installation](#installation)
 * [Quick Start](#quick-start)
 * [Examples](#examples)
+* [Advanced Configuration](#advanced-configuration)
 * [Reference](#reference)
 * [Development](#development)
 * [Authors](#authors)
@@ -88,7 +89,7 @@ statful = StatfulClient.new(config)
 
 ### Logger configuration
 
-Creates a simple client configuration and adds your favourite logger to the client. 
+Creates a simple client configuration and adds your favourite logger to the client.
 
 **Just assure that logger object supports, at least, warn, debug and error methods**.
 
@@ -189,6 +190,49 @@ statful.timer("test_timer", 100, { :agg => %w(p50), :aggFreq => 60 })
 statful.timer("test_timer", 100, { :tags => {:host => 'test_host', :status => 'SUCCESS' } }
 ```
 
+## Advanced Configuration
+
+You can configure Statful Client either by code and/or by YAML configuration file. Also, you can override the YAML configuration file location using an environment variable.
+
+### YAML Configuration File
+
+Statful Client, by default, looks in the root of your project for a `config/statful.yml` configuration file.
+
+You can set environment specific options by name-spacing the options beneath the environment name.
+
+We included in `config/statful.yml.dist` a simple configuration file that makes use of a environment specific options.
+
+```
+default: &default
+  transport: "http"
+  dryrun: true
+  flush_size: 1
+
+test: &test
+  <<: *default
+
+development: &development
+  <<: *default
+
+staging: &staging
+  <<: *default
+  dryrun: false
+  flush_size: 10
+
+production:
+  <<: *staging
+```
+
+### Environment variable
+
+You can override the YAML configuration file location using `STATFUL_CONFIG`:
+
+```bash
+export STATFUL_CONFIG=statful.yml
+```
+
+Statful Client will now look for a YAML configuration file named `statful.yml` in the root of your project.
+
 ## Reference
 
 Detailed reference if you want to take full advantage from Statful.
@@ -255,7 +299,7 @@ $ rake spec
 Use gem to build a gem according to the spec if required:
 
 ```
-$ gem build statful-ruby.gemspec
+$ gem build statful-client.gemspec
 ```
 
 ### Docs

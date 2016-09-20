@@ -1,0 +1,18 @@
+default: &default
+  transport: "http"
+  dryrun: true
+  flush_size: 1
+
+test: &test
+  <<: *default
+
+development: &development
+  <<: *default
+
+staging: &staging
+  <<: *default
+  dryrun: false
+  flush_size: 10
+
+production:
+  <<: *staging
